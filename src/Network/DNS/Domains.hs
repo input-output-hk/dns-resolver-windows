@@ -5,6 +5,7 @@
 module Network.DNS.Domains (
       getDefaultDnsServer
     , isValidIPv4Address
+    , newResolvConf
     ) where
 
 import           Foreign.C             (CString, peekCString)
