@@ -9,6 +9,7 @@ module Network.DNS.Domains (
 
 import           Foreign.C             (CString, peekCString)
 import           Foreign.Marshal.Utils (maybePeek)
+import Data.Maybe (fromMaybe)
 import Data.IP
 import Text.Read (readMaybe)
 import Network.DNS as DNS
