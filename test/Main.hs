@@ -12,5 +12,5 @@ tests = testGroup "Tests" [unitTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Unit tests"
-  [ testCase "Test 1" $ True @?= True
+  [ testCase "Test 2" $ True @?= True
   ]
