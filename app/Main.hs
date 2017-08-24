@@ -1,6 +1,7 @@
 module Main where
 
-import Lib
+import Network.DNS.Lookup
 
 main :: IO ()
-main = someFunc
+main = do
+  putStrLn "Querying DNS for https://www.google.com ..."
