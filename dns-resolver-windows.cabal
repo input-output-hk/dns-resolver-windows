@@ -21,6 +21,7 @@ library
                      , iproute
   default-language:    Haskell2010
   if os(windows)
+     extra-libraries: iphlpapi
      c-sources: cbits/defaultdns.c
 
 executable dns-resolver-windows
