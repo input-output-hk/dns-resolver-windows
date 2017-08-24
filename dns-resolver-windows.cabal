@@ -13,24 +13,31 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+library
+  hs-source-dirs: src
+  exposed-modules: Network.DNS.Domains
+  build-depends:       base
+                     , dns
+                     , iproute
+  default-language:    Haskell2010
+  if os(windows)
+     c-sources: cbits/defaultdns.c
+
 executable dns-resolver-windows
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , dns
-                     , iproute
+                     , dns-resolver-windows
   default-language:    Haskell2010
-
-  if os(windows)
-     c-sources: cbits/defaultdns.c
 
 test-suite dns-resolver-windows-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Main.hs
   build-depends:       base
-                     , dns
+                     , dns-resolver-windows
                      , tasty
                      , tasty-hunit
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
