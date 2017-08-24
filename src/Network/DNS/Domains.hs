@@ -47,7 +47,7 @@ getDefaultDnsServer = pure (Just "8.8.8.8")
 #endif
 
 newResolvConf :: IO DNS.ResolvConf
-newResolvConf =
+newResolvConf = do
 #ifdef POSIX
     return DNS.defaultResolvConf
 #else
