@@ -28,7 +28,7 @@ testGetDefaultDnsServer = do
 testLookups :: Assertion
 testLookups = do
   seed <- newResolvConf >>= makeResolvSeed
-  res  <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.co.uk" A
+  res  <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.it" A
   case res of
     Left e    -> fail (show e)
     Right lst -> assertBool "nay" (all (isValidIPv4Address . show) lst)
