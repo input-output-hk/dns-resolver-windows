@@ -48,7 +48,7 @@ testLookups = do
   res  <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.it" A
   case res of
     Left e    -> fail (show e)
-    Right lst -> assertBool "nay" (all (isValidIPv4Address . show) lst)
+    Right lst -> assertBool "nay" (all isValid lst)
 
 testLookupsIOHK :: Assertion
 testLookupsIOHK = do
@@ -59,4 +59,8 @@ testLookupsIOHK = do
     return $ r1 >>= (\x -> (x <>) <$> r2)
   case res of
     Left e    -> fail (show e)
-    Right lst -> assertBool "nay" (all (isValidIPv4Address . show) lst)
+    Right lst -> assertBool "nay" (all isValid lst)
+
+isValid :: DNS.RData -> Bool
+isValid (RD_A _) = True
+isValid x        = error (show x)
