@@ -50,12 +50,9 @@ getDefaultDnsServer = pure (Just "8.8.4.4")
 
 newResolvConf :: IO DNS.ResolvConf
 newResolvConf = do
-#ifdef POSIX
-    return DNS.defaultResolvConf
-#else
     let googlePublicDNS = "8.8.8.8"
     dns <- fromMaybe googlePublicDNS <$> getDefaultDnsServer
     return $ DNS.defaultResolvConf { DNS.resolvInfo    = DNS.RCHostName dns
                                    , DNS.resolvTimeout = 10 * 1000 * 1000 -- 10sec timeout
+                                   , DNS.resolvRetry   = 10
                                    }
-#endif
