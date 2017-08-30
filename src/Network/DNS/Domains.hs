@@ -45,7 +45,7 @@ getDefaultDnsServer :: IO (Maybe String)
 #ifdef WIN
 getDefaultDnsServer = getWindowsDefDnsServer >>= maybePeek peekCString
 #else
-getDefaultDnsServer = pure (Just "8.8.8.8")
+getDefaultDnsServer = pure (Just "8.8.4.4")
 #endif
 
 newResolvConf :: IO DNS.ResolvConf
@@ -55,5 +55,7 @@ newResolvConf = do
 #else
     let googlePublicDNS = "8.8.8.8"
     dns <- fromMaybe googlePublicDNS <$> getDefaultDnsServer
-    return $ DNS.defaultResolvConf { DNS.resolvInfo = DNS.RCHostName dns }
+    return $ DNS.defaultResolvConf { DNS.resolvInfo    = DNS.RCHostName dns
+                                   , DNS.resolvTimeout = 10 * 1000 * 1000 -- 10sec timeout
+                                   }
 #endif
