@@ -1,1 +1,10 @@
 .stack-work
+dns/.stack-work
+dns/dist/
+dns/tags
+dns/TAGS
+dns/codex.tags
+dns/*.hi
+dns/*.o
+dns/examples/SimpleServer
+
