@@ -17,9 +17,10 @@ resolver: lts-9.1
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
-- location:
-   git: https://github.com/input-output-hk/dns.git
-   commit: 6da3cd051bd6f6415c8ec3b53f1c0372a80a4376
+- dns
+# - location:
+#    git: https://github.com/input-output-hk/dns.git
+#    commit: 6da3cd051bd6f6415c8ec3b53f1c0372a80a4376
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: []
