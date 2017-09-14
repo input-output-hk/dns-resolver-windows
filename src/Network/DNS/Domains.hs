@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 
 module Network.DNS.Domains (
-      getDefaultDnsServer
+      getDefaultDnsServers
     , isValidIPv4Address
     , newResolvConf
     ) where
@@ -12,6 +12,7 @@ import           Foreign.C             (CString, peekCString)
 import           Foreign.Marshal.Utils (maybePeek)
 import Data.Maybe (fromMaybe)
 import Data.IP
+import qualified Data.Text as T
 import Text.Read (readMaybe)
 import Network.DNS as DNS
 
@@ -24,8 +25,23 @@ import Network.DNS as DNS
 
 
 #ifdef WIN
+data Dns_t = Dns_t {
+    error :: Int
+  , dnsAddresses :: String
+  } deriving Show
 -- | Returns @nullPtr@ on failure.
-foreign import ccall "getWindowsDefDnsServer" getWindowsDefDnsServer :: IO CString
+foreign import ccall "getWindowsDefDnsServers" getWindowsDefDnsServers :: IO Dns_t
+
+instance Storable Dns_t where
+  alignment _ = #{alignment dns_t}
+  sizeOf _ = #{size dns_t}
+  peek ptr = do
+    a <- #{peek dns_t, error} ptr
+    b <- #{peek dns_t, dnsAddresses} ptr
+    return (Dns_t a b)
+  poke ptr (Dns_t a b) = do
+    #{poke dns_t, error} ptr a
+    #{poke dns_t, dnsAddresses} ptr b
 #endif
 
 isValidIPv4Address :: String -> Bool
@@ -37,21 +53,24 @@ isValidIPv4Address str = case readMaybe @IPv4 str of
 -- On failure (i.e. when there are no DNS servers available,
 -- or when the operation is not supported by the operating system), returns @""@.
 --
--- >>> getDefaultDnsServer
--- Just "8.8.8.8"
--- >>> getDefaultDnsServer
--- Nothing
-getDefaultDnsServer :: IO (Maybe String)
+-- >>> getDefaultDnsServers
+-- ["8.8.8.8", "4.4.4.4"]
+-- >>> getDefaultDnsServers
+-- []
+getDefaultDnsServers :: IO [String]
 #ifdef WIN
-getDefaultDnsServer = getWindowsDefDnsServer >>= maybePeek peekCString
+getDefaultDnsServers = do
+  res <- getWindowsDefDnsServers
+  putStrLn $ "RESULT ===> " <> show res
+  return $ map T.unpack (T.splitOn "," (T.pack $ dnsAddresses res))
 #else
-getDefaultDnsServer = pure (Just "8.8.4.4")
+getDefaultDnsServers = pure ["8.8.8.8", "8.8.4.4"]
 #endif
 
 newResolvConf :: IO DNS.ResolvConf
 newResolvConf = do
-    let googlePublicDNS = "8.8.8.8"
-    dns <- fromMaybe googlePublicDNS <$> getDefaultDnsServer
+    let googlePublicDNSs = ["8.8.8.8", "8.8.4.4"]
+    dns <- (\x -> if x == [] then "8.8.8.8" else head x) <$> getDefaultDnsServers
     return $ DNS.defaultResolvConf { DNS.resolvInfo    = DNS.RCHostName dns
                                    , DNS.resolvTimeout = 10 * 1000 * 1000 -- 10sec timeout
                                    , DNS.resolvRetry   = 10
