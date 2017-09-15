@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE CPP #-}
 
@@ -9,8 +10,12 @@ module Network.DNS.Domains (
     ) where
 
 import           Foreign.C             (CString, peekCString)
+import Foreign.C.String (newCString)
+import Foreign.Ptr
+import Foreign.Storable (Storable(..))
 import           Foreign.Marshal.Utils (maybePeek)
 import Data.Maybe (fromMaybe)
+import Data.Monoid
 import Data.IP
 import qualified Data.Text as T
 import Text.Read (readMaybe)
@@ -22,26 +27,25 @@ import Network.DNS as DNS
 #define WIN
 #endif
 
-
-
 #ifdef WIN
+#include "dns.h"
 data Dns_t = Dns_t {
-    error :: Int
+    dnsError :: Int
   , dnsAddresses :: String
   } deriving Show
--- | Returns @nullPtr@ on failure.
-foreign import ccall "getWindowsDefDnsServers" getWindowsDefDnsServers :: IO Dns_t
+
+foreign import ccall "getWindowsDefDnsServers" getWindowsDefDnsServers :: IO (Ptr Dns_t)
 
 instance Storable Dns_t where
   alignment _ = #{alignment dns_t}
-  sizeOf _ = #{size dns_t}
+  sizeOf _    = #{size dns_t}
   peek ptr = do
     a <- #{peek dns_t, error} ptr
-    b <- #{peek dns_t, dnsAddresses} ptr
+    b <- #{peek dns_t, dnsAddresses} ptr >>= peekCString
     return (Dns_t a b)
   poke ptr (Dns_t a b) = do
     #{poke dns_t, error} ptr a
-    #{poke dns_t, dnsAddresses} ptr b
+    newCString b >>= #{poke dns_t, dnsAddresses} ptr
 #endif
 
 isValidIPv4Address :: String -> Bool
@@ -60,9 +64,10 @@ isValidIPv4Address str = case readMaybe @IPv4 str of
 getDefaultDnsServers :: IO [String]
 #ifdef WIN
 getDefaultDnsServers = do
-  res <- getWindowsDefDnsServers
-  putStrLn $ "RESULT ===> " <> show res
-  return $ map T.unpack (T.splitOn "," (T.pack $ dnsAddresses res))
+  res <- peek =<< getWindowsDefDnsServers
+  case dnsError res of
+    0 -> return $ map T.unpack (T.splitOn "," (T.pack (dnsAddresses res)))
+    _ -> return mempty -- TODO: Do proper error handling here.
 #else
 getDefaultDnsServers = pure ["8.8.8.8", "8.8.4.4"]
 #endif

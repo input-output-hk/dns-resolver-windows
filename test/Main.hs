@@ -12,8 +12,8 @@ main = do
   seed <- newResolvConf >>= makeResolvSeed
   -- Print some debug info
   putStrLn $ "\n*** DEBUG INFO ***\n"
-  defaultDNS <- getDefaultDnsServer
-  putStrLn $ "DEFAULT DNS: " <> show defaultDNS
+  defaultDNSs <- getDefaultDnsServers
+  putStrLn $ "DEFAULT DNSs: " <> show defaultDNSs
   googIP <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.it" A
   c1     <- withResolver seed $ \resolver -> DNS.lookup resolver "cardano-node-0.aws.iohkdev.io" A
   c2     <- withResolver seed $ \resolver -> DNS.lookup resolver "cardano-node-1.aws.iohkdev.io" A
@@ -37,10 +37,10 @@ unitTests = testGroup "Unit tests"
 
 testGetDefaultDnsServer :: Assertion
 testGetDefaultDnsServer = do
-  res <- getDefaultDnsServer
+  res <- getDefaultDnsServers
   case res of
-    Nothing -> fail "getDefaultDnsServer yielded Nothing."
-    Just x  -> isValidIPv4Address x @?= True
+    [] -> fail "getDefaultDnsServer yielded []"
+    x:_  -> isValidIPv4Address x @?= True
 
 testLookups :: Assertion
 testLookups = do

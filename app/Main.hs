@@ -1,7 +1,7 @@
 module Main where
 
 import Network.DNS.Lookup
+import Network.DNS.Domains
 
 main :: IO ()
-main = do
-  putStrLn "Querying DNS for https://www.google.com ..."
+main = getDefaultDnsServers >>= print

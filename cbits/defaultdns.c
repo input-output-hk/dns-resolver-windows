@@ -1,28 +1,24 @@
 #include <winsock2.h>
 #include <iphlpapi.h>
-#include <stdio.h>
 #include <string.h>
 #include <windows.h>
-#include <iostream>
+#include <string.h>
+#include "dns.h"
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-typedef struct {
-    DWORD error;
-    char dnsAddresses[255];
-} dns_t;
-
-dns_t getWindowsDefDnsServers(void) {
+dns_t* getWindowsDefDnsServers(void) {
     FIXED_INFO *pFixedInfo;
     ULONG ulOutBufLen;
     DWORD dwRetVal;
-    dns_t result;
+    dns_t* result = (dns_t*) MALLOC(sizeof(dns_t));
+    result->dnsAddresses = (char*) MALLOC(128 * sizeof(char));
 
-    result.error = NO_ERROR;
+    result->error = NO_ERROR;
     pFixedInfo = (FIXED_INFO *) MALLOC(sizeof (FIXED_INFO));
     if (pFixedInfo == NULL) {
-      result.error = ERROR_NOT_ENOUGH_MEMORY;
+      result->error = ERROR_NOT_ENOUGH_MEMORY;
       return result;
     }
     ulOutBufLen = sizeof (FIXED_INFO);
@@ -33,7 +29,7 @@ dns_t getWindowsDefDnsServers(void) {
         FREE(pFixedInfo);
         pFixedInfo = (FIXED_INFO *) MALLOC(ulOutBufLen);
         if (pFixedInfo == NULL) {
-            result.error = ERROR_NOT_ENOUGH_MEMORY;
+            result->error = ERROR_NOT_ENOUGH_MEMORY;
             return result;
         }
     }
@@ -44,25 +40,26 @@ dns_t getWindowsDefDnsServers(void) {
       int offset = 0;
       int space_available = 255;
       IP_ADDR_STRING* head = &pFixedInfo->DnsServerList;
-      while (head != NULL && space_available >= 17) {
-        strcpy_s(&result.dnsAddresses[offset], 15, head->IpAddress.String);
+      while (head != NULL && space_available >= 16) {
+        int ip_len = strlen(head->IpAddress.String);
+        strcpy_s(result->dnsAddresses + offset, ip_len + 1, head->IpAddress.String);
         // Update the offset (non-null-terminated IP address + separator)
-        offset += 16;
+        offset += ip_len + 1;
         // Update the space available, pessimistically
         space_available -= 16;
         // Write the separator, but only if this is not the last one,
         // otherwise terminate the string.
         head = head->Next;
         if (head == NULL)
-          result.dnsAddresses[offset] = '\0';
+          result->dnsAddresses[offset] = '\0';
         else
-          result.dnsAddresses[offset] = ',';
+          result->dnsAddresses[offset - 1] = ',';
       }
     }
 
     else {
         if (pFixedInfo) FREE(pFixedInfo);
-        result.error = dwRetVal;
+        result->error = dwRetVal;
     }
 
     if (pFixedInfo) FREE(pFixedInfo);

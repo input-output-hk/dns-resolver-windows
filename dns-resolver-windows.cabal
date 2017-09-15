@@ -24,6 +24,7 @@ library
   if os(windows)
      extra-libraries: iphlpapi
      c-sources: cbits/defaultdns.c
+     include-dirs: include
 
 executable dns-resolver-windows
   hs-source-dirs:      app
