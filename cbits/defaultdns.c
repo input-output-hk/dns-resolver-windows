@@ -12,8 +12,15 @@ dns_t* getWindowsDefDnsServers(void) {
     FIXED_INFO *pFixedInfo;
     ULONG ulOutBufLen;
     DWORD dwRetVal;
+
     dns_t* result = (dns_t*) MALLOC(sizeof(dns_t));
+    if (result == NULL) return (dns_t*) ERROR_NOT_ENOUGH_MEMORY;
+
     result->dnsAddresses = (char*) MALLOC(128 * sizeof(char));
+    if (result->dnsAddresses == NULL) {
+      result->error = ERROR_NOT_ENOUGH_MEMORY;
+      return result;
+    }
 
     result->error = NO_ERROR;
     pFixedInfo = (FIXED_INFO *) MALLOC(sizeof (FIXED_INFO));

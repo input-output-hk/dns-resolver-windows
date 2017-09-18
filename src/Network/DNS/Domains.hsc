@@ -16,6 +16,7 @@ import Foreign.Storable (Storable(..))
 import           Foreign.Marshal.Utils (maybePeek)
 import Data.Maybe (fromMaybe)
 import Data.Monoid
+import Data.Word
 import Data.IP
 import qualified Data.Text as T
 import Text.Read (readMaybe)
@@ -30,7 +31,7 @@ import Network.DNS as DNS
 #ifdef WIN
 #include "dns.h"
 data Dns_t = Dns_t {
-    dnsError :: Int
+    dnsError :: Word32
   , dnsAddresses :: String
   } deriving Show
 
@@ -67,7 +68,10 @@ getDefaultDnsServers = do
   res <- peek =<< getWindowsDefDnsServers
   case dnsError res of
     0 -> return $ map T.unpack (T.splitOn "," (T.pack (dnsAddresses res)))
-    _ -> return mempty -- TODO: Do proper error handling here.
+    e -> do
+      putStrLn $ "getDefaultDnsServers failed with error code: " <> show e
+      putStrLn (show res)
+      return mempty -- TODO: Do proper error handling here.
 #else
 getDefaultDnsServers = pure ["8.8.8.8", "8.8.4.4"]
 #endif
