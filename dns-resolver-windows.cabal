@@ -18,7 +18,6 @@ library
   exposed-modules: Network.DNS.Domains
   build-depends:       base
                      , dns
-                     , iproute
   default-language:    Haskell2010
   if os(windows)
      extra-libraries: iphlpapi
@@ -40,6 +39,7 @@ test-suite dns-resolver-windows-test
   build-depends:       base
                      , dns-resolver-windows
                      , dns
+                     , iproute
                      , tasty
                      , tasty-hunit
   default-language:    Haskell2010
