@@ -14,7 +14,7 @@ main = do
   googIP <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.it" A
   c1     <- withResolver seed $ \resolver -> DNS.lookup resolver "cardano-node-0.aws.iohkdev.io" A
   c2     <- withResolver seed $ \resolver -> DNS.lookup resolver "cardano-node-1.aws.iohkdev.io" A
-  c3     <- withResolver seed $ \resolver -> DNS.lookup resolver "ntp.pool.org" A
+  c3     <- withResolver seed $ \resolver -> DNS.lookup resolver "reddit.com" A
   putStrLn $ "www.google.it resolved to: " <> show googIP
   putStrLn $ "cardano-node-0.aws.iohkdev.io resolved to: " <> show c1
   putStrLn $ "cardano-node-1.aws.iohkdev.io resolved to: " <> show c2
@@ -37,7 +37,7 @@ testLookups :: Assertion
 testLookups = do
   seed <- newResolvConf >>= makeResolvSeed
   res  <- withResolver seed $ \resolver -> DNS.lookup resolver "www.google.it" A
-  res2 <- withResolver seed $ \resolver -> DNS.lookup resolver "ntp.pool.org" A
+  res2 <- withResolver seed $ \resolver -> DNS.lookup resolver "reddit.com" A
   case res of
     Left e    -> fail (show e)
     Right lst -> assertBool "nay" (all isValid lst)
